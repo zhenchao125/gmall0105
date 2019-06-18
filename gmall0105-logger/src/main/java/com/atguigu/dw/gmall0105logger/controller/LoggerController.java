@@ -2,8 +2,11 @@ package com.atguigu.dw.gmall0105logger.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.dw.gmall0105.common.constant.GmallConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,12 +27,28 @@ public class LoggerController {
         saveLog(jsonObj);
 
         // 3. 写入到kafka
-
+        sendToKafka(jsonObj);
         return "success";
+    }
+
+    @Autowired
+    KafkaTemplate<String, String> templete;
+    /**
+     * 把日志发送到 kafka
+     *
+     * @param jsonObj
+     */
+    private void sendToKafka(JSONObject jsonObj) {
+        String topic = GmallConstant.TOPIC_STARTUP;  //
+        if ("event".equals(jsonObj.getString("type"))) {
+            topic = GmallConstant.TOPIC_EVENT;
+        }
+        templete.send(topic, jsonObj.toJSONString());
     }
 
     /**
      * 给 参数添加时间戳
+     *
      * @param jsonObj
      * @return 返回带时间戳的 JSONObject对象
      */
@@ -40,9 +59,11 @@ public class LoggerController {
 
     // 初始化 Logger 对象
     private final Logger logger = LoggerFactory.getLogger(LoggerController.class);
+
     /**
      * 日志落盘
      * 使用 log4j
+     *
      * @param logObj
      */
     public void saveLog(JSONObject logObj) {
