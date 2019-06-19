@@ -1,3 +1,4 @@
+package com.atguigu.dw.gmall0105.common.util
 import io.searchbox.client.config.HttpClientConfig
 import io.searchbox.client.{JestClient, JestClientFactory}
 import io.searchbox.core.{Bulk, Index}
@@ -65,12 +66,12 @@ object MyESUtil {
       * 测试批量插入
       *
       */
-    def mutltiOperation() ={
+    def mutltiOperation() = {
         val client: JestClient = getESClient
-    
+        
         val user1 = User("aa", 30)
         val user2 = User("bb", 30)
-    
+        
         val bulk: Bulk = new Bulk.Builder()
             .defaultIndex("user")
             .defaultType("_doc")
@@ -82,14 +83,29 @@ object MyESUtil {
     }
     
     def main(args: Array[String]): Unit = {
-//        singleOperation()
-//        mutltiOperation()
+        //        singleOperation()
+        //        mutltiOperation()
     }
     
-    
+    /**
+      * 向 指定的index中,插入指定数据集
+      *
+      * @param index
+      * @param sources
+      */
+    def insertBulk(index: String, sources: Iterable[Any]): Unit = {
+        val bulkBuilder: Bulk.Builder = new Bulk.Builder().defaultIndex(index).defaultType("_doc")
+        sources.foreach(source => {
+            bulkBuilder.addAction(new Index.Builder(source).build())
+        })
+        val client: JestClient = getESClient
+        client.execute(bulkBuilder.build())
+        closeClient(client)
+    }
     
     /**
       * 关闭连接es的客户端
+      *
       * @param client
       */
     def closeClient(client: JestClient) = {

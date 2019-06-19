@@ -6,6 +6,7 @@ import java.util.Date
 
 import com.alibaba.fastjson.JSON
 import com.atguigu.dw.gmall0105.common.constant.GmallConstant
+import com.atguigu.dw.gmall0105.common.util.MyESUtil
 import com.atguigu.dw.gmall0105.realtime.bean.StartupLog
 import com.atguigu.dw.gmall0105.realtime.util.{MyKafkaUtil, RedisUtil}
 import org.apache.spark.SparkConf
@@ -57,19 +58,19 @@ object DauApp {
         // 2.2负责把过滤后的写入到 redis
         filteredDStream.foreachRDD(rdd => {
             rdd.foreachPartition(startupLogIt => {
+                val StartupLogList: List[StartupLog] = startupLogIt.toList
+                
                 val client: Jedis = RedisUtil.getJedisClient
                 // 把启动日志的uid写入到redis
-                startupLogIt.foreach(startupLog => {
+                StartupLogList.foreach(startupLog => {
                     client.sadd(GmallConstant.REDIS_DAU_KEY + ":" + startupLog.logDate, startupLog.uid)
                 })
                 client.close()
                 
                 // 3. 写到 es 中
-                
-                
+                MyESUtil.insertBulk(GmallConstant.DAU_INDEX, StartupLogList)
             })
         })
-        
         
         ssc.start()
         ssc.awaitTermination()
