@@ -58,17 +58,17 @@ object DauApp {
         // 2.2负责把过滤后的写入到 redis
         filteredDStream.foreachRDD(rdd => {
             rdd.foreachPartition(startupLogIt => {
-                val StartupLogList: List[StartupLog] = startupLogIt.toList
+                val startupLogList: List[StartupLog] = startupLogIt.toList
                 
                 val client: Jedis = RedisUtil.getJedisClient
                 // 把启动日志的uid写入到redis
-                StartupLogList.foreach(startupLog => {
+                startupLogList.foreach(startupLog => {
                     client.sadd(GmallConstant.REDIS_DAU_KEY + ":" + startupLog.logDate, startupLog.uid)
                 })
                 client.close()
                 
                 // 3. 写到 es 中
-                MyESUtil.insertBulk(GmallConstant.DAU_INDEX, StartupLogList)
+                MyESUtil.insertBulk(GmallConstant.DAU_INDEX, startupLogList)
             })
         })
         
