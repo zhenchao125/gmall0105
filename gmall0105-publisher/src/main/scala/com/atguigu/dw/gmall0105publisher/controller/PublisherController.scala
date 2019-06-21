@@ -53,7 +53,6 @@ class PublisherController {
         }
     }
     
-    
     /**
       * 计算出来昨天
       *
@@ -68,7 +67,6 @@ class PublisherController {
         
         // 方法2:
         LocalDate.parse(date).minusDays(1).toString
-        
     }
     
 }
