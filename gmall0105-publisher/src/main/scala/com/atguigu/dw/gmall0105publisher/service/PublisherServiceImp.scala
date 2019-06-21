@@ -1,7 +1,10 @@
 package com.atguigu.dw.gmall0105publisher.service
 
+import java.util
+
 import com.atguigu.dw.gmall0105.common.constant.GmallConstant
 import io.searchbox.client.JestClient
+import io.searchbox.core.search.aggregation.TermsAggregation
 import io.searchbox.core.{Search, SearchResult}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -47,5 +50,42 @@ class PublisherServiceImp extends PublisherService {
       * @param date
       * @return
       */
-    override def getDauHour2CountMap(date: String): Map[String, Long] = ???
+    override def getDauHour2CountMap(date: String): Map[String, Long] = {
+        val queryDSL =
+            s"""
+               |{
+               |  "query": {
+               |    "bool": {
+               |      "filter": {
+               |        "term": {
+               |          "logDate": "$date"
+               |        }
+               |      }
+               |    }
+               |  }
+               |  ,"aggs": {
+               |    "groupby_hour": {
+               |      "terms": {
+               |        "field": "logHour",
+               |        "size": 24
+               |      }
+               |    }
+               |  }
+               |}
+             """.stripMargin
+        val search: Search = new Search.Builder(queryDSL)
+            .addIndex(GmallConstant.DAU_INDEX)
+            .addType("_doc")
+            .build()
+        val result: SearchResult = jestClient.execute(search)
+        val buckets: util.List[TermsAggregation#Entry] = result.getAggregations.getTermsAggregation("groupby_hour").getBuckets
+        
+        var resultMap = Map[String, Long]()
+        // 遍历每个bucket , 取出里面的key和count, 添加到最后的Map中
+        for(i <- 0 until buckets.size){
+            val bucket: TermsAggregation#Entry = buckets.get(i)
+            resultMap += bucket.getKey -> bucket.getCount
+        }
+        resultMap
+    }
 }
