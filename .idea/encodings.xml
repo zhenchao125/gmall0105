@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/dw-chart" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gmall0105-common" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gmall0105-logger" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gmall0105-mock" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gmall0105-publisher" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/gmall0105-realtime" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../../prepare/gmall0105/gmall0105-publisher" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <profile name="Maven 1" modules="gmall0105-logger,gmall0105-publisher,gmall0105-mock,gmall0105-realtime,gmall0105-common" />
+  </component>
+</project>
