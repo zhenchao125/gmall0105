@@ -46,6 +46,16 @@
         </dependency>
         <!-- es 相关依赖结束 -->
 
+
+        <!-- 转为 scala 准备的 json 解析工具 -->
+        <!-- https://mvnrepository.com/artifact/org.json4s/json4s-jackson -->
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_2.11</artifactId>
+            <version>3.2.11</version>
+        </dependency>
+
+
     </dependencies>
 
 </project>
