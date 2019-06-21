@@ -11,6 +11,8 @@ public class GmallConstant {
 
     public final static String DAU_INDEX = "gmall0105_dau";
 
+    public final static String TOPIC_ORDER = "gmall0105_order";
+
 
 
 }
