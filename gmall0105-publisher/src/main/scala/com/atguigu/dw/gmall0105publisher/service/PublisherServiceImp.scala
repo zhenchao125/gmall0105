@@ -16,6 +16,7 @@ class PublisherServiceImp extends PublisherService {
     // 1. 连接es
     @Autowired
     private var jestClient: JestClient = _
+    
     /**
       * 获取指定日期的日活数据
       *
@@ -84,7 +85,7 @@ class PublisherServiceImp extends PublisherService {
         
         var resultMap = Map[String, Long]()
         // 遍历每个bucket , 取出里面的key和count, 添加到最后的Map中
-        for(i <- 0 until buckets.size){
+        for (i <- 0 until buckets.size) {
             val bucket: TermsAggregation#Entry = buckets.get(i)
             resultMap += bucket.getKey -> bucket.getCount
         }
@@ -135,35 +136,35 @@ class PublisherServiceImp extends PublisherService {
       */
     override def getOrderHourTotalAmount(date: String): mutable.Map[String, Double] = {
         val queryDSL =
-                s"""
-                   |{
-                   |  "query": {
-                   |    "bool": {
-                   |        "filter": {
-                   |          "term": {
-                   |            "createDate": "$date"
-                   |          }
-                   |        }
-                   |      }
-                   |    },
-                   |    "aggs": {
-                   |      "groupby_createHour": {
-                   |        "terms": {
-                   |          "field": "createHour",
-                   |          "size": 24
-                   |        },
-                   |        "aggs": {
-                   |          "sum_totalAmount": {
-                   |            "sum": {
-                   |              "field": "totalAmount"
-                   |            }
-                   |          }
-                   |        }
-                   |      }
-                   |    }
-                   |}
+            s"""
+               |{
+               |  "query": {
+               |    "bool": {
+               |        "filter": {
+               |          "term": {
+               |            "createDate": "$date"
+               |          }
+               |        }
+               |      }
+               |    },
+               |    "aggs": {
+               |      "groupby_createHour": {
+               |        "terms": {
+               |          "field": "createHour",
+               |          "size": 24
+               |        },
+               |        "aggs": {
+               |          "sum_totalAmount": {
+               |            "sum": {
+               |              "field": "totalAmount"
+               |            }
+               |          }
+               |        }
+               |      }
+               |    }
+               |}
              """.stripMargin
-    
+        
         val search: Search = new Search.Builder(queryDSL)
             .addIndex(GmallConstant.ORDER_INDEX)
             .addType("_doc").build()
@@ -173,9 +174,88 @@ class PublisherServiceImp extends PublisherService {
         val buckets: util.List[TermsAggregation#Entry] = result.getAggregations.getTermsAggregation("groupby_createHour").getBuckets
         import scala.collection.JavaConversions._
         val resultMap = mutable.Map[String, Double]()
-        for(bucket <- buckets){
+        for (bucket <- buckets) {
             resultMap += bucket.getKey -> bucket.getSumAggregation("sum_totalAmount").getSum
         }
+        resultMap
+    }
+    
+    /**
+      * 按照给定的条件从es中查询数据
+      *
+      * @param date
+      * @param keyword
+      * @param startPage
+      * @param size
+      * @param aggField
+      * @param aggSize 年龄: 100   性别: 2
+      */
+    override def getSaleDetailAndAggResultByField(date: String, keyword: String, startPage: Int, size: Int, aggField: String, aggSize: Int): Map[String, Any] = {
+        val queryDSL =
+            s"""
+               |{
+               |  "from": ${(startPage - 1) * size},
+               |  "size": $size,
+               |  "query": {
+               |    "bool": {
+               |      "filter": {
+               |        "term": {
+               |          "dt": "$date"
+               |        }
+               |      }
+               |      , "must": [
+               |        {"match": {
+               |          "sku_name": {
+               |            "query": "$keyword",
+               |            "operator": "and"
+               |          }
+               |        }}
+               |      ]
+               |    }
+               |  }
+               |  , "aggs": {
+               |    "groupby_$aggField": {
+               |      "terms": {
+               |        "field": "user_$aggField",
+               |        "size": $aggSize
+               |      }
+               |    }
+               |  }
+               |}
+            """.stripMargin
+        
+        val search: Search = new Search.Builder(queryDSL)
+            .addIndex(GmallConstant.SALE_DETAIL_INDEX)
+            .addType("_doc")
+            .build()
+        val result: SearchResult = jestClient.execute(search)
+        
+        // 3个键值对:  总数, 明细, 聚合数据  total -> 100,  "detail" -> List[Map[String, Any]],  "aggMap" -> Map[String, Double]
+        var resultMap: Map[String, Any] = Map[String, Any]()
+        // 1. 得到命中的总数
+        resultMap += "total" -> result.getTotal
+        
+        // 2. 得到销售明细
+        val hits: util.List[SearchResult#Hit[util.HashMap[String, Any], Void]] =
+            result.getHits(classOf[util.HashMap[String, Any]])
+        import scala.collection.JavaConversions._
+        var detailList: List[Map[String, Any]] = List[Map[String, Any]]() // 存储明细
+        for (hit <- hits) {
+            val source: util.HashMap[String, Any] = hit.source
+            detailList = source.toMap :: detailList
+        }
+        resultMap += "detail" -> detailList
+        
+        // 3. 得到聚合的数据
+        var aggMap = Map[String, Double]()
+        val buckets: util.List[TermsAggregation#Entry] =
+            result.getAggregations.getTermsAggregation(s"groupby_$aggField").getBuckets
+        for (bucket <- buckets) {
+            aggMap += bucket.getKey -> bucket.getCount
+        }
+        resultMap += "appMap" -> aggMap
+        
+        // 4. 返回最终结果
         resultMap
     }
 }
