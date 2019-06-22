@@ -216,7 +216,7 @@ class PublisherServiceImp extends PublisherService {
                |  , "aggs": {
                |    "groupby_$aggField": {
                |      "terms": {
-               |        "field": "user_$aggField",
+               |        "field": "$aggField",
                |        "size": $aggSize
                |      }
                |    }
@@ -250,11 +250,12 @@ class PublisherServiceImp extends PublisherService {
         var aggMap = Map[String, Double]()
         val buckets: util.List[TermsAggregation#Entry] =
             result.getAggregations.getTermsAggregation(s"groupby_$aggField").getBuckets
+        println(buckets.size())
         for (bucket <- buckets) {
-            aggMap += bucket.getKey -> bucket.getCount
+            aggMap += bucket.getKey -> bucket.getCount.toDouble
         }
-        resultMap += "appMap" -> aggMap
-        
+        resultMap += "aggMap" -> aggMap
+    
         // 4. 返回最终结果
         resultMap
     }
