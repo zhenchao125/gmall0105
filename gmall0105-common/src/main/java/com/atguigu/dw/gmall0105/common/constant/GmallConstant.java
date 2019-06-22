@@ -13,6 +13,6 @@ public class GmallConstant {
 
     public final static String TOPIC_ORDER = "gmall0105_order";
 
-
+    public final static String ORDER_INDEX = "gmall0105_order";
 
 }

@@ -15,4 +15,11 @@ trait PublisherService {
       * @return
       */
     def getDauHour2CountMap(date: String): Map[String, Long]
+    
+    /**
+      * 获取指定日期的销售总额
+      * @param date
+      * @return
+      */
+    def getOrderTotalAmount(date: String): Double
 }

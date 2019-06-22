@@ -30,9 +30,6 @@ object CanalHandler {
                 MyKafkaSender.send(GmallConstant.TOPIC_ORDER, jsonObj.toJSONString)
             }
         }
-        
-        
-        
         //
     }
 }

@@ -88,4 +88,40 @@ class PublisherServiceImp extends PublisherService {
         }
         resultMap
     }
+    
+    /**
+      * 获取指定日期的销售总额
+      *
+      * @param date
+      * @return
+      */
+    override def getOrderTotalAmount(date: String): Double = {
+        val queryDSL =
+            s"""
+               |{
+               |  "query": {
+               |    "bool": {
+               |        "filter": {
+               |          "term": {
+               |            "createDate": "$date"
+               |          }
+               |        }
+               |      }
+               |    },
+               |    "aggs": {
+               |      "sum_totalAmount": {
+               |        "sum": {
+               |          "field": "totalAmount"
+               |        }
+               |      }
+               |    }
+               |}
+             """.stripMargin
+        val search: Search = new Search.Builder(queryDSL)
+            .addIndex(GmallConstant.ORDER_INDEX)
+            .addType("_doc").build()
+        
+        val result: SearchResult = jestClient.execute(search)
+        result.getAggregations.getSumAggregation("sum_totalAmount").getSum
+    }
 }

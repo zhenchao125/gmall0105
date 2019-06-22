@@ -16,12 +16,14 @@ class PublisherController {
     @GetMapping(Array("/realtime-total"))
     def getRealtimeTotalDau(@RequestParam("date") date: String) = {
         val total: Long = publishService.getDauTotal(date)
+        val orderTotalAmount = publishService.getOrderTotalAmount(date)
         
         val result =
             s"""
                |[
                |  {"id":"dau","name":"新增日活","value":$total},
                |  {"id":"new_mid","name":"新增用户","value":333}
+               |  {"id":"order_amount","name":"新增销售额","value":$orderTotalAmount}
                |]
              """.stripMargin
         result
