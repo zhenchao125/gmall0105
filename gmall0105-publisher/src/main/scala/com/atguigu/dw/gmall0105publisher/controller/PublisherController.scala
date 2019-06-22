@@ -7,6 +7,8 @@ import org.json4s.jackson.JsonMethods
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.{GetMapping, RequestParam, RestController}
 
+import scala.collection.mutable
+
 
 @RestController
 class PublisherController {
@@ -22,7 +24,7 @@ class PublisherController {
             s"""
                |[
                |  {"id":"dau","name":"新增日活","value":$total},
-               |  {"id":"new_mid","name":"新增用户","value":333}
+               |  {"id":"new_mid","name":"新增用户","value":333},
                |  {"id":"order_amount","name":"新增销售额","value":$orderTotalAmount}
                |]
              """.stripMargin
@@ -47,6 +49,18 @@ class PublisherController {
             resultMap += "today" -> hour2CountTody
             resultMap += "yesterday" -> hour2CountYesterday
             
+            // 把前面的map转换json字符串
+            import org.json4s.JsonDSL._
+            JsonMethods.compact(JsonMethods.render(resultMap))
+        } else if(id == "order_amount"){
+    
+            val hour2OrderSumTody: mutable.Map[String, Double] = publishService.getOrderHourTotalAmount(date)
+            val hour2OrderSumYesterday: mutable.Map[String, Double] = publishService.getOrderHourTotalAmount(getYesterday(date))
+    
+            var resultMap: Map[String, mutable.Map[String, Double]] = Map[String, mutable.Map[String, Double]]()
+            resultMap += "today" -> hour2OrderSumTody
+            resultMap += "yesterday" -> hour2OrderSumYesterday
+    
             // 把前面的map转换json字符串
             import org.json4s.JsonDSL._
             JsonMethods.compact(JsonMethods.render(resultMap))

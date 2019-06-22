@@ -9,6 +9,8 @@ import io.searchbox.core.{Search, SearchResult}
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+import scala.collection.mutable
+
 @Service
 class PublisherServiceImp extends PublisherService {
     // 1. 连接es
@@ -123,5 +125,59 @@ class PublisherServiceImp extends PublisherService {
         
         val result: SearchResult = jestClient.execute(search)
         result.getAggregations.getSumAggregation("sum_totalAmount").getSum
+    }
+    
+    /**
+      * 获取指定日期每个小时的销售额
+      *
+      * @param date
+      * @return
+      */
+    override def getOrderHourTotalAmount(date: String): mutable.Map[String, Double] = {
+        val queryDSL =
+                s"""
+                   |{
+                   |  "query": {
+                   |    "bool": {
+                   |        "filter": {
+                   |          "term": {
+                   |            "createDate": "$date"
+                   |          }
+                   |        }
+                   |      }
+                   |    },
+                   |    "aggs": {
+                   |      "groupby_createHour": {
+                   |        "terms": {
+                   |          "field": "createHour",
+                   |          "size": 24
+                   |        },
+                   |        "aggs": {
+                   |          "sum_totalAmount": {
+                   |            "sum": {
+                   |              "field": "totalAmount"
+                   |            }
+                   |          }
+                   |        }
+                   |      }
+                   |    }
+                   |}
+             """.stripMargin
+    
+        val search: Search = new Search.Builder(queryDSL)
+            .addIndex(GmallConstant.ORDER_INDEX)
+            .addType("_doc").build()
+        
+        val result: SearchResult = jestClient.execute(search)
+        
+        val buckets: util.List[TermsAggregation#Entry] = result.getAggregations.getTermsAggregation("groupby_createHour").getBuckets
+        import scala.collection.JavaConversions._
+        val resultMap = mutable.Map[String, Double]()
+        for(bucket <- buckets){
+            resultMap += bucket.getKey -> bucket.getSumAggregation("sum_totalAmount").getSum
+            
+        }
+       
+        resultMap
     }
 }

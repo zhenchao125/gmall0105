@@ -1,5 +1,7 @@
 package com.atguigu.dw.gmall0105publisher.service
 
+import scala.collection.mutable
+
 trait PublisherService {
     /**
       * 获取指定日期的日活数据
@@ -22,4 +24,11 @@ trait PublisherService {
       * @return
       */
     def getOrderTotalAmount(date: String): Double
+    
+    /**
+      * 获取指定日期每个小时的销售额
+      * @param date
+      * @return
+      */
+    def getOrderHourTotalAmount(date: String): mutable.Map[String, Double]
 }
