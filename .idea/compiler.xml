@@ -9,6 +9,7 @@
         <module name="dw-chart" />
         <module name="gmall0105-canal" />
         <module name="gmall0105-common" />
+        <module name="gmall0105-dw2es" />
         <module name="gmall0105-logger" />
         <module name="gmall0105-mock" />
         <module name="gmall0105-publisher" />

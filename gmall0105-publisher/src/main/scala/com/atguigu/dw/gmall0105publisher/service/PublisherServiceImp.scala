@@ -175,9 +175,7 @@ class PublisherServiceImp extends PublisherService {
         val resultMap = mutable.Map[String, Double]()
         for(bucket <- buckets){
             resultMap += bucket.getKey -> bucket.getSumAggregation("sum_totalAmount").getSum
-            
         }
-       
         resultMap
     }
 }
