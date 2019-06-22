@@ -18,7 +18,7 @@ object CanalHandler {
         // 1. 把数据给解析出来
         if (tableName == "order_info" && eventType == EventType.INSERT && rowDataList.size() > 0) {
             import scala.collection.JavaConversions._
-            for (rowData <- rowDataList) {
+            for (rowData <- rowDataList) {  // 表示一行数据
                 val jsonObj = new JSONObject()
                 val columnsList: util.List[CanalEntry.Column] = rowData.getAfterColumnsList
                 for (column <- columnsList) {
